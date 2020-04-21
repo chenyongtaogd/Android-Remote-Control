@@ -155,7 +155,7 @@ class KeyHandler(private val connections: Connections) : EventHandler<KeyEvent> 
                         }
                         KEY_NAME_BAG -> if (!connections.mouseVisible){
                             fovHandler.stop()
-                            connections.sendBagOpen(Position(2103, 359))
+                            connections.sendBagOpen(Position(2691, 267))
                         }
                         KEY_NAME_ONE, KEY_NAME_TWO, KEY_NAME_THREE -> {
                             val index = buttonWithId.button.name!!.toInt()
@@ -229,7 +229,9 @@ class KeyHandler(private val connections: Connections) : EventHandler<KeyEvent> 
     fun focusChange(focus: Boolean) {
         if(!focus && !connections.mouseVisible){
             fovHandler.stop()
-            connections.sendSwitchMouse()
+            connections.sendJoystick(JoystickDirection.NONE.joystickByte)
+            connections.sendClearTouch()
+            if(!connections.mouseVisible) connections.sendSwitchMouse()
         }
     }
 }

@@ -39,6 +39,7 @@ class Controller(private val inputStream: InputStream) : Thread() {
     private fun injectEvent() {
         when (event.type) {
             HEAD_KEY -> injectKey()
+            HEAD_CLEAR_TOUCH -> touchConverter.localIdToEvent.clear()
             else -> injectTouch()
         }
     }
@@ -75,22 +76,24 @@ class Controller(private val inputStream: InputStream) : Thread() {
     }
 
     private fun injectEvent(event: InputEvent): Boolean {
-        if (ENABLE_LOG) Ln.d("inject->${event}")
         return serviceManager.inputManager.injectInputEvent(event, INJECT_INPUT_EVENT_MODE_ASYNC);
     }
 
     private fun readEvent() {
         event.type = inputStream.read().toByte()
-        if (event.type == HEAD_KEY) {
-            event.key = inputStream.read().toByte()
-        } else {
-            touchBuffer.clear()
-            inputStream.read(touchBuffer.array())
-            event.id = touchBuffer.get()
-            event.x = touchBuffer.getInt(1)
-            event.y = touchBuffer.getInt(5)
+        when (event.type) {
+            HEAD_KEY -> {
+                event.key = inputStream.read().toByte()
+            }
+            else -> {
+                touchBuffer.clear()
+                inputStream.read(touchBuffer.array())
+                event.id = touchBuffer.get()
+                event.x = touchBuffer.getInt(1)
+                event.y = touchBuffer.getInt(5)
+            }
         }
-        if (ENABLE_LOG) Ln.d("revive->${event}")
+        if (ENABLE_LOG && event.type != HEAD_TOUCH_MOVE) Ln.d("revive->${event}")
     }
 }
 
