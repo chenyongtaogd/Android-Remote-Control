@@ -1,14 +1,11 @@
 package cn.wycode.control
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
@@ -18,7 +15,6 @@ import android.widget.Toast
 
 const val OVERLAY_PERMISSION_REQUEST_CODE = 300
 const val AUDIO_PERMISSION_REQUEST_CODE = 301
-const val MEDIA_PROJECTOR_REQUEST_CODE = 302
 
 class MainActivity : Activity() {
 
@@ -49,25 +45,8 @@ class MainActivity : Activity() {
         }
 
         requestPermissions(permissions, AUDIO_PERMISSION_REQUEST_CODE)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            mediaProjectionManager =
-                getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            startActivityForResult(mediaProjectionManager.createScreenCaptureIntent(), MEDIA_PROJECTOR_REQUEST_CODE)
-        }
     }
 
-    @SuppressLint("NewApi")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == MEDIA_PROJECTOR_REQUEST_CODE && resultCode == RESULT_OK) {
-
-            val serviceIntent = Intent(this, RecordService::class.java)
-            serviceIntent.putExtra("data", data)
-            startForegroundService(serviceIntent)
-
-        }
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -76,7 +55,11 @@ class MainActivity : Activity() {
         } else {
             false
         }
-        if (!permissionToRecordAccepted) finish()
+        if (permissionToRecordAccepted) {
+            startForegroundService(Intent(this, RecordService::class.java))
+        } else {
+            finish()
+        }
     }
 
     override fun onStart() {
